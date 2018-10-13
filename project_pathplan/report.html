@@ -1,0 +1,116 @@
+<html>
+
+<head>
+    <title>Report of Pathplan</title>
+</head>
+
+<body onload="init()">
+    Report of Pathplan
+    <br>
+    <select id="alg_search">
+        <option value="">alg_search</option>
+        <option value=0>DFS</option>
+        <option value=1>BFS</option>
+        <option value=2>Greedy</option>
+        <option value=3>A-star</option>
+    </select>
+
+    <select id="planning_scene">
+        <option value="">planning_scene</option>
+        <option value=0>empty</option>
+        <option value=1>misc</option>
+        <option value=2>narrow1</option>
+        <option value=3>narrow2</option>
+        <option value=4>three_sections</option>
+    </select>
+
+    <select id="start_goal">
+        <option value="">start_goal</option>
+        <option value=0>set 1</option>
+        <option value=1>set 2</option>
+    </select>
+    <button onclick=show_picture()>submit</button>
+    <br />
+    <div id="img"></div>
+    <br />
+    Foundings:
+    <br />
+    1)DFS is not a good method. Because its path is twisty, and easy to over come the goal.
+    <br />
+    2)BFS is better than DFS, at least it's not that twisty. But sometime BFS's interation is longer, 
+    <br />
+    so it is not fast enough.
+    <br />
+    3)Greedy-first method is much quicker than BFS in many scenes. But sometimes, the path is not 
+    <br />
+    shortest, for example, "misc" scene.
+    <br />
+    4)A-star method is the best method in this four methods. A-star method combines the advantages of
+    <br />
+    BFS and Greedy-first method, so it can get shortest path in a quick speed.
+
+
+
+    <script>
+        //console.log(alg_search);
+        function init() {
+
+            img = new Image();
+            img.src = "report_picture/Z00.jpg";
+            imgContainer = document.getElementById("img");
+            imgContainer.appendChild(img);
+
+            document.getElementById("alg_search").selectedIndex = 0;
+            document.getElementById("alg_search").onchange = select_alg;
+
+            document.getElementById("planning_scene").selectedIndex = 0;
+            document.getElementById("planning_scene").onchange = select_scene;
+
+            document.getElementById("start_goal").selectedIndex = 0;
+            document.getElementById("start_goal").onchange = select_start;
+
+            alg_set = 0;
+            scene_set = 0;
+            start_set = 0;
+
+        }
+
+        function select_alg(){
+            alg_id = this.options[this.selectedIndex].value;
+            alg_set = 1;
+        }
+
+        function select_scene() {
+            scene_id = this.options[this.selectedIndex].value;
+            scene_set = 1;
+        }
+
+        function select_start() {
+            start_id = this.options[this.selectedIndex].value;
+            start_set = 1;
+        }
+        
+        function show_picture() {
+            var alg_string = ["DFS", "BFS", "GRD", "AST"];
+            var scene_string = ["_01", "_02", "_03", "_04", "_05"];
+            var start_string = ["_goal01", "_goal02"];
+
+            if (alg_set * scene_set * start_set > 0.1) {
+                imgContainer.removeChild(img);
+            }
+
+            pic_loc = "report_picture/" + alg_string[alg_id] + start_string[start_id] + scene_string[scene_id] + ".jpg";
+
+            img = new Image();
+            img.src = pic_loc;
+            imgContainer.appendChild(img);
+        }
+        
+
+
+    </script>
+
+
+
+</body>
+</html>

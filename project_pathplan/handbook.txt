@@ -1,0 +1,27 @@
+STENCIL:
+
+iterateGraphSearch()		{A-star; 
+
+iterateRRT()
+
+iterateRRTConnect()
+
+iterateRRTStar()
+
+initSearchGraph()
+
+MIN HEAP IMPLEMENTATION FUNCTIONS
+
+RRT IMPLEMENTATION FUNCTIONS
+
+
+initSearchGraph()
+G[iind][jind] = {
+                i:iind,j:jind, // mapping to graph array
+                x:xpos,y:ypos, // mapping to map coordinates
+                parent:null, // pointer to parent in graph along motion path
+                distance:10000, // distance to start via path through parent
+                visited:false, // flag for whether the node has been visited
+                priority:null, // visit priority based on fscore
+                queued:false // flag for whether the node has been queued for visiting
+                
