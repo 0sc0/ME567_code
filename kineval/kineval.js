@@ -101,7 +101,7 @@ kineval.animate = function animate() {
 
 
 kineval.robotDraw = function drawRobot() {
-
+    //console.log("robotrun");
     // robot links
     for (x in robot.links) {
    
@@ -152,7 +152,7 @@ kineval.robotDraw = function drawRobot() {
 
     // robot joints
     for (x in robot.joints) {
-
+        //console.log(155);
         // toggled robot joint display
         if (kineval.params.display_joints) {
             var tempmat = matrix_2Darray_to_threejs(robot.joints[x].xform);
