@@ -105,7 +105,9 @@ function startingPlaceholderAnimate() {
         jsmat[2][3] = Math.random()*jitterRadius;
 
         // apply matrix to transform the object to its proper pose in 3D
+        //console.log("start_jsmat=", jsmat);
         robot.links[x].xform = matrix_copy(jsmat);
+        //console.log("start_xform=", robot.links[x].xform);
     } 
 
     // TRANSLATE ROBOT JOINTS

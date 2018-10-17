@@ -55,21 +55,21 @@ function generate_translation_matrix(dx, dy, dz) {
     return mat;
 }
 
-function generate_rotation_matrix_X() {
+function generate_rotation_matrix_X(z) {
     var mat = [
-        [1, 0, 0, 0]
-        [0, Math.cos(z), -Math.sin(z), 0]
-        [0, Math.sin(z),  Math.cos(z), 0]
+        [1, 0, 0, 0],
+        [0, Math.cos(z), -Math.sin(z), 0],
+        [0, Math.sin(z),  Math.cos(z), 0],
         [0, 0, 0, 1]
     ]
     return mat;
 }
 
-function generate_rotation_matrix_Y() {
+function generate_rotation_matrix_Y(z) {
     var mat = [
-        [Math.cos(z), 0, Math.sin(z), 0]
-        [0, 1, 0, 0]
-        [-Math.sin(z),0, Math.cos(z), 0]
+        [Math.cos(z), 0, Math.sin(z), 0],
+        [0, 1, 0, 0],
+        [-Math.sin(z),0, Math.cos(z), 0],
         [0, 0, 0, 1]
     ]
     return mat;
@@ -77,9 +77,9 @@ function generate_rotation_matrix_Y() {
 
 function generate_rotation_matrix_Z(z) {
     var mat = [
-        [Math.cos(z), -Math.sin(z), 0, 0]
-        [Math.sin(z), Math.cos(z), 0, 0]
-        [0, 0, 1, 0]
+        [Math.cos(z), -Math.sin(z), 0, 0],
+        [Math.sin(z), Math.cos(z), 0, 0],
+        [0, 0, 1, 0],
         [0, 0, 0, 1]
     ]
     return mat;

@@ -55,7 +55,7 @@ robot.links = {
 robot.joints = {};
 
 robot.joints.clavicle_right_yaw = {parent:"base", child:"clavicle_right"};
-robot.joints.clavicle_right_yaw.origin = {xyz: [0.3,0.4,0.0], rpy:[-Math.PI/2,0,0]};
+robot.joints.clavicle_right_yaw.origin = { xyz: [0.3, 0.4, 0.0], rpy: [-Math.PI / 2, 0, 0] };
 robot.joints.clavicle_right_yaw.axis = [0.0,0.0,-1.0]; 
 
 robot.joints.shoulder_right_yaw = {parent:"clavicle_right", child:"shoulder_right"};

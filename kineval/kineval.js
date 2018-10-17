@@ -32,7 +32,9 @@ kineval.start = function kinevalExecute() {
     console.log(" **** >>> kineval.start"); 
     // KinEval should not do anything until there is a robot and a world loaded
     var x;
-    for (x in robot.links) { 
+    for (x in robot.links) {
+        //console.log(36);
+        //console.log(x);
         if (typeof links_geom[x] === 'undefined') {
             console.log("waiting for robot geometries to load"); 
             //requestAnimationFrame(kineval.start);
@@ -113,6 +115,7 @@ kineval.robotDraw = function drawRobot() {
 
         // toggled robot link display
         if (kineval.params.display_links) {
+
             var tempmat = matrix_2Darray_to_threejs(robot.links[x].xform);
             simpleApplyMatrix(robot.links[x].geom,tempmat);
             robot.links[x].geom.visible = true;
@@ -180,6 +183,9 @@ kineval.robotDraw = function drawRobot() {
     if (kineval.params.display_joints_active) {
         x = kineval.params.active_joint;
         var tempmat = matrix_2Darray_to_threejs(robot.joints[x].xform);
+        //console.log(x);
+        //console.log("xform=", robot.joints[x].xform);
+        //console.log("tempmat=", tempmat);
         simpleApplyMatrix(robot.joints[x].geom,tempmat);
         robot.joints[x].geom.visible = true;
         if (kineval.params.display_joints_active_axes) {

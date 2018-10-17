@@ -62,13 +62,22 @@ kineval.initRobotJoints = function initRobotJoints() {
         //console.log(robot.joints[x].parent);
         //之前已经定义joint的上下，现在需要link的上下
         robot.links[robot.joints[x].child].parent = x;
-        //console.log(robot.links[robot.joints[x].parent].children.length);
+
+        //console.log(robot.links[robot.joints[x].parent].children);
+
         if (typeof robot.links[robot.joints[x].parent].children === 'undefined') {
             robot.links[robot.joints[x].parent].children = [x];
         }
         else
             robot.links[robot.joints[x].parent].children.push(x);
     }
+    /*
+    for (y in robot.links) {
+        console.log("link", y);
+        console.log("children", robot.links[y].children);
+    }
+    */
+
     //console.log(72);
     //console.log(robot.links["base"].children);
 }
