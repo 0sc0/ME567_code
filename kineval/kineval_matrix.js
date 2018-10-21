@@ -84,16 +84,36 @@ function generate_rotation_matrix_Z(z) {
     ]
     return mat;
 }
+
+function vector_cross(v1, v2) {
+    var vector = [
+        v1[1] * v2[2] - v1[2] * v2[1],
+        v1[2] * v2[0] - v1[0] * v2[2],
+        v1[0] * v2[1] - v1[1] * v2[0]
+    ]
+
+    return vector;
+}
+
+function vector_normalize(v) {
+    var module = Math.pow(Math.pow(v[0], 2) + Math.pow(v[1], 2) + Math.pow(v[2], 2), 0.5);
+    var vector = [
+        v[0] / module,
+        v[1] / module,
+        v[2] / module
+    ]
+    return vector;
+}
     // STENCIL: reference matrix code has the following functions:
-    //   matrix_multiply
+    //   matrix_multiply                done
     //   matrix_transpose
     //   matrix_pseudoinverse
     //   matrix_invert_affine
-    //   vector_normalize
-    //   vector_cross
+    //   vector_normalize               done
+    //   vector_cross                   done
     //   generate_identity
-    //   generate_translation_matrix
-    //   generate_rotation_matrix_X
-    //   generate_rotation_matrix_Y
-    //   generate_rotation_matrix_Z
+    //   generate_translation_matrix    done
+    //   generate_rotation_matrix_X     done
+    //   generate_rotation_matrix_Y     done
+    //   generate_rotation_matrix_Z     done
 
