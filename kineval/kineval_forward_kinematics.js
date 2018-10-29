@@ -111,7 +111,13 @@ function FKstack(x) {
                             [1, 0, 0, 0]];
         temp_heading = matrix_multiply(robot.links[base_name].xform, temp_heading);
         robot_heading = [[temp_heading[0][0]], [temp_heading[1][0]], [temp_heading[2][0]], [temp_heading[3][0]]];
-        //robot_lateral = [[1], [0], [0], [1]];
+
+        var temp_lateral = [[1, 0, 0, 0],
+                            [0, 0, 0, 0],
+                            [0, 0, 0, 0],
+                            [1, 0, 0, 0]];
+        temp_lateral = matrix_multiply(robot.links[base_name].xform, temp_lateral);
+        robot_lateral = [[temp_lateral[0][0]], [temp_lateral[1][0]], [temp_lateral[2][0]], [temp_lateral[3][0]]];
     }
 
     if (robot.links[x].visited === true) {
@@ -156,8 +162,26 @@ function FKstack(x) {
         var mat_y = generate_rotation_matrix_Y(x_angle[1]);
         var mat_z = generate_rotation_matrix_Z(x_angle[2]);
         var mat_t = generate_translation_matrix(x_position[0], x_position[1], x_position[2]);
+        /*joint½Ç¶È£¬×ªÖá*/
+        var j_ang = robot.joints[x_parent].angle;
+        var j_axis = robot.joints[x_parent].axis;
 
+        var j_quater = quaternion_from_axisangle(j_axis, j_ang);
+        var j_ro_mat = quaternion_to_rotation_matrix(j_quater);
+        /*
+        if (x_parent == "clavicle_right_yaw") {
+            console.log("low", j_ro_mat);
+            console.log("quater", j_quater);
+            console.log("angle", j_ang);
+            console.log("axis", j_axis);
+        }
+        if (x_parent == "upperarm_right_pitch") {
+            //console.log("upper", j_ro_mat);
+            alert();
+        }
+        */
         var mat_H = matrix_multiply(matrix_multiply(mat_t, mat_z), matrix_multiply(mat_y, mat_x));
+        mat_H = matrix_multiply(mat_H, j_ro_mat);
 
         stack_pin = mat_stack.length;
         mat_stack.push(matrix_multiply(mat_stack[stack_pin - 1], mat_H));
