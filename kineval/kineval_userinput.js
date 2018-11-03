@@ -154,7 +154,9 @@ kineval.handleUserInput = function user_input() {
     if ( keyboard.pressed("q") ) {  // strafe
         textbar.innerHTML = "moving base left";
         //robot.origin.xyz[0] += 0.1; // simple but ineffective: not aligned with robot
-
+        //console.log("before", temp_console);
+        //console.log("lateral", robot_lateral);
+        //console.log("base", robot.origin.xyz);
         robot.control.xyz[2] += 0.1 * (robot_lateral[2][0]-robot.origin.xyz[2]);
         robot.control.xyz[0] += 0.1 * (robot_lateral[0][0]-robot.origin.xyz[0]);
     }

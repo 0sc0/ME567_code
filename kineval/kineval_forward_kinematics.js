@@ -94,8 +94,21 @@ function FKstack(x) {
                         [0, 0, 1, 0],
                         [0, 0, 0, 1]]);
 
-        var b_position = robot.origin.xyz;
-        var b_angle = robot.origin.rpy;
+        if (robot.links_geom_imported == true) {
+            var b_position = [0, 0, 0];
+            var b_angle = [0, 0, 0];
+            b_position[0] = robot.origin.xyz[2];
+            b_position[1] = robot.origin.xyz[0];
+            b_position[2] = robot.origin.xyz[1];
+            b_angle[0] = robot.origin.rpy[2];
+            b_angle[1] = robot.origin.rpy[0];
+            b_angle[2] = robot.origin.rpy[1];
+        }
+        else {
+            var b_position = robot.origin.xyz;
+            var b_angle = robot.origin.rpy;
+        }
+        
 
         var bmat_x = generate_rotation_matrix_X(b_angle[0]);
         var bmat_y = generate_rotation_matrix_Y(b_angle[1]);
@@ -104,20 +117,55 @@ function FKstack(x) {
 
         var bmat_H = matrix_multiply(matrix_multiply(bmat_t, bmat_z), matrix_multiply(bmat_y, bmat_x));
         robot.links[base_name].xform = matrix_copy(matrix_multiply(robot.links[base_name].xform, bmat_H));
-
-        var temp_heading = [[0, 0, 0, 0],
-                            [0, 0, 0, 0],
-                            [1, 0, 0, 0],
-                            [1, 0, 0, 0]];
+        //正向
+        if (robot.links_geom_imported == true) {
+            var temp_heading = [[1, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [1, 0, 0, 0]];
+        }
+        else {
+            var temp_heading = [[0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [1, 0, 0, 0],
+                                [1, 0, 0, 0]];
+        }
         temp_heading = matrix_multiply(robot.links[base_name].xform, temp_heading);
+        /*
+        if (robot.links_geom_imported == true) {
+            var back2ROS = [[0, 0, 1, 0],
+                            [1, 0, 0, 0],
+                            [0, 1, 0, 0],
+                            [0, 0, 0, 0]];
+            temp_heading = matrix_multiply(back2ROS, temp_heading);
+        }*/
         robot_heading = [[temp_heading[0][0]], [temp_heading[1][0]], [temp_heading[2][0]], [temp_heading[3][0]]];
-
-        var temp_lateral = [[1, 0, 0, 0],
-                            [0, 0, 0, 0],
-                            [0, 0, 0, 0],
-                            [1, 0, 0, 0]];
+        //侧向
+        if (robot.links_geom_imported == true) {
+            var temp_lateral = [[0, 0, 0, 0],
+                                [1, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [1, 0, 0, 0]];
+        }
+        else {
+            var temp_lateral = [[1, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [1, 0, 0, 0]];
+        }
         temp_lateral = matrix_multiply(robot.links[base_name].xform, temp_lateral);
+        //temp_console = temp_lateral;
+        /*
+        if (robot.links_geom_imported == true) {
+            var back2ROS = [[0, 0, 1, 0],
+                            [1, 0, 0, 0],
+                            [0, 1, 0, 0],
+                            [0, 0, 0, 0]];
+            temp_lateral = matrix_multiply(back2ROS, temp_lateral);
+        }
+        */
         robot_lateral = [[temp_lateral[0][0]], [temp_lateral[1][0]], [temp_lateral[2][0]], [temp_lateral[3][0]]];
+
     }
 
     if (robot.links[x].visited === true) {
@@ -162,26 +210,31 @@ function FKstack(x) {
         var mat_y = generate_rotation_matrix_Y(x_angle[1]);
         var mat_z = generate_rotation_matrix_Z(x_angle[2]);
         var mat_t = generate_translation_matrix(x_position[0], x_position[1], x_position[2]);
-        /*joint角度，转轴*/
-        var j_ang = robot.joints[x_parent].angle;
-        var j_axis = robot.joints[x_parent].axis;
 
-        var j_quater = quaternion_from_axisangle(j_axis, j_ang);
-        var j_ro_mat = quaternion_to_rotation_matrix(j_quater);
-        /*
-        if (x_parent == "clavicle_right_yaw") {
-            console.log("low", j_ro_mat);
-            console.log("quater", j_quater);
-            console.log("angle", j_ang);
-            console.log("axis", j_axis);
-        }
-        if (x_parent == "upperarm_right_pitch") {
-            //console.log("upper", j_ro_mat);
-            alert();
-        }
-        */
         var mat_H = matrix_multiply(matrix_multiply(mat_t, mat_z), matrix_multiply(mat_y, mat_x));
-        mat_H = matrix_multiply(mat_H, j_ro_mat);
+
+        /*continuous和revolute joint角度，转轴*/
+        if ((robot.joints[x_parent].type !== 'prismatic')
+             && (robot.joints[x_parent].type !== 'fixed')) {
+            var j_ang = robot.joints[x_parent].angle;
+            var j_axis = robot.joints[x_parent].axis;
+
+            var j_quater = quaternion_from_axisangle(j_axis, j_ang);
+            var j_ro_mat = quaternion_to_rotation_matrix(j_quater);
+
+            
+            mat_H = matrix_multiply(mat_H, j_ro_mat);
+        }
+        //prismatic joint延伸
+        if (robot.joints[x_parent].type == 'prismatic') {
+            var dx = robot.joints[x_parent].axis[0] * robot.joints[x_parent].extend;
+            var dy = robot.joints[x_parent].axis[1] * robot.joints[x_parent].extend;
+            var dz = robot.joints[x_parent].axis[2] * robot.joints[x_parent].extend;
+            
+            mat_move = generate_translation_matrix(dx, dy, dz);
+            //console.log(robot.joints[x_parent].extend);
+            mat_H = matrix_multiply(mat_H, mat_move);
+        }
 
         stack_pin = mat_stack.length;
         mat_stack.push(matrix_multiply(mat_stack[stack_pin - 1], mat_H));
