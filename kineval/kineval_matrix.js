@@ -104,6 +104,63 @@ function vector_normalize(v) {
     ]
     return vector;
 }
+
+function vec_sub(v1, v2) {
+    var out_vec = [];
+    for (i = 0; i < v1.length; i++) {
+        out_vec[i] = v1[i] - v2[i];
+    }
+
+    return out_vec;
+}
+
+function mat_vec(mat, vec) {
+    //console.log("mat",mat);
+    //console.log("vec", vec);
+    //console.log(mat[0][0] * vec[0], mat[0][1] * vec[1], mat[0][2] * vec[2], mat[0][3] * vec[3]);
+    var i = mat.length;
+    var j = mat[0].length;
+
+    var out_vec = new Array(i);
+
+    for (xx = 0; xx < i; xx++) {
+        out_vec[xx] = 0;
+    }
+
+    for (xx = 0; xx < i; xx++) {
+        for(yy=0;yy<j;yy++){
+            out_vec[xx] += mat[xx][yy]*vec[yy];
+        }
+    }
+    /*
+    var out_vec = [
+        mat[0][0] * vec[0] + mat[0][1] * vec[1] + mat[0][2] * vec[2] + mat[0][3] * vec[3],
+        mat[1][0] * vec[0] + mat[1][1] * vec[1] + mat[1][2] * vec[2] + mat[1][3] * vec[3],
+        mat[2][0] * vec[0] + mat[2][1] * vec[1] + mat[2][2] * vec[2] + mat[2][3] * vec[3],
+        mat[3][0] * vec[0] + mat[3][1] * vec[1] + mat[3][2] * vec[2] + mat[3][3] * vec[3],
+    ];
+    */
+    //console.log("out",out_vec);
+    return out_vec;
+}
+
+function matrix_transpose(mat) {
+    var i = mat.length;
+    var j = mat[0].length;
+
+    var out_mat = new Array(j);
+    for (z = 0; z < j; z++){
+        out_mat[z] = new Array();
+    }
+
+    for (x = 0; x < j; x++) {
+        for (y = 0; y < i; y++) {
+            out_mat[x][y] = mat[y][x];
+        }
+    }
+
+    return out_mat;
+}
     // STENCIL: reference matrix code has the following functions:
     //   matrix_multiply                done
     //   matrix_transpose
