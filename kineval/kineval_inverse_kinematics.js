@@ -51,19 +51,25 @@ kineval.iterateIK = function iterate_inverse_kinematics(endeffector_target_world
     var end_angle_w = mat_vec(H, [0, 0, 1, 0]);
     end_angle_w.pop();
     var end_vec_w = end_pose_w.concat(end_angle_w);
+	//var end_vec_w = end_pose_w.concat([0,0,0]);
     //console.log("end_vec_w", end_vec_w);
-    //euler or vector? vector.
 
     var J = jacobian(endeffector_joint, end_pose_w);
     //console.log("jacobian", J);
     //alert();
     //console.log("endeffector_target_world", endeffector_target_world);
     var end_target_w = endeffector_target_world.position.slice(0, 3).concat(endeffector_target_world.orientation);
+	
     //console.log("end_target_w", end_target_w);
+	//alert();
     //console.log("end_vec_w",end_vec_w);
     var J_T = matrix_transpose(J);
-
+	
     var delta_x = vec_sub(end_target_w, end_vec_w);
+	delta_x[3] = 0;
+	delta_x[4] = 0;
+	delta_x[5] = 0;
+
     if (kineval.params.ik_pseudoinverse) {
         var J_JT = matrix_multiply(J, J_T);
         //console.log("J", J);
@@ -81,14 +87,15 @@ kineval.iterateIK = function iterate_inverse_kinematics(endeffector_target_world
         //console.log("dx", delta_x);
         var delta_theta = mat_vec(J_T, delta_x);
         //console.log("delta_theta", delta_theta);
+		//alert();
     }
-    //console.log("J_T", J_T);
+    //
     //console.log("delta_x", delta_x);
-    //console.log("delta_theta0", delta_theta);
+    //console.log("delta_theta", delta_theta);
 
-    for (i = 0; i < delta_theta.length; i++) {
-        delta_theta[i] = kineval.params.ik_steplength * delta_theta[i];
-    }
+    //for (i = 0; i < delta_theta.length; i++) {
+    //    delta_theta[i] = kineval.params.ik_steplength * delta_theta[i];
+    //}
     //console.log("delta_theta", delta_theta);
     
 
@@ -102,7 +109,7 @@ kineval.iterateIK = function iterate_inverse_kinematics(endeffector_target_world
             continue;
         }
 
-        robot.joints[x].control = delta_theta[i];
+        robot.joints[x].control = kineval.params.ik_steplength * delta_theta[i];
 
         x = robot.links[robot.joints[x].parent].parent;
         i += 1;
@@ -154,8 +161,10 @@ function jacobian(endeffector_joint, end_pose_w) {
         }
             
     }
-
+	//console.log("Jacobian", J);
+	//alert();
     return J;
+
 }
 
 function J_vector(x, end_pose_w) {
@@ -166,13 +175,14 @@ function J_vector(x, end_pose_w) {
     var joint_axis_w = mat_vec(H_j, joint_axis_l);
     joint_pose_w.pop();
     joint_axis_w.pop();
+	joint_axis_w = vec_sub(joint_axis_w, joint_pose_w);
     if (robot.joints[x].type == "prismatic") {
         var Jx = [joint_axis_w[0], joint_axis_w[1], joint_axis_w[2]];
         Jx.push(0, 0, 0);
     }
     else {
-        var Jx = vector_cross(vec_sub(joint_axis_w, joint_pose_w), vec_sub(end_pose_w, joint_pose_w));
-        joint_axis_w = vec_sub(joint_axis_w, joint_pose_w);
+        var Jx = vector_cross(joint_axis_w, vec_sub(end_pose_w, joint_pose_w));
+        
         Jx.push(joint_axis_w[0], joint_axis_w[1], joint_axis_w[2]);
         /*
         console.log("joint_pose_w", joint_pose_w);
