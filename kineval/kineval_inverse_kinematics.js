@@ -52,6 +52,7 @@ kineval.iterateIK = function iterate_inverse_kinematics(endeffector_target_world
     end_angle_w.pop();
     var end_vec_w = end_pose_w.concat(end_angle_w);
     //console.log("end_vec_w", end_vec_w);
+    //euler or vector? vector.
 
     var J = jacobian(endeffector_joint, end_pose_w);
     //console.log("jacobian", J);
