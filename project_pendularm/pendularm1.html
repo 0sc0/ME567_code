@@ -145,7 +145,7 @@ function animate() {
 
 
     // STENCIL: implement servo controller
-    servo_active_persist = true;
+    //servo_active_persist = true;
     
 
     error_past = error;
@@ -193,8 +193,8 @@ function animate() {
     if (numerical_integrator === "euler") {
 
         // STENCIL: a correct Euler integrator is REQUIRED for assignment
-        pendulum.angle += pendulum.angle_dot * dt;
         pendulum.angle_dot += (-(gravity * Math.sin(pendulum.angle)) / pendulum.length + pendulum.control / (pendulum.mass * Math.pow(pendulum.length, 2))) * dt;
+        pendulum.angle += pendulum.angle_dot * dt;
         //console.log(pendulum.control);
     }
     else if (numerical_integrator === "verlet") {

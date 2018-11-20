@@ -96,12 +96,19 @@ function vector_cross(v1, v2) {
 }
 
 function vector_normalize(v) {
-    var module = Math.pow(Math.pow(v[0], 2) + Math.pow(v[1], 2) + Math.pow(v[2], 2), 0.5);
-    var vector = [
-        v[0] / module,
-        v[1] / module,
-        v[2] / module
-    ]
+    var l = v.length;
+    var module = 0;
+
+    for (i = 0; i < l; i++) {
+        module += Math.pow(v[i], 2)
+    }
+    module = Math.pow(module, 0.5);
+
+    var vector = new Array(l);
+    for (i = 0; i < l; i++) {
+        vector[i] = v[i] / module;
+    }
+
     return vector;
 }
 
@@ -160,6 +167,22 @@ function matrix_transpose(mat) {
     }
 
     return out_mat;
+}
+
+function matrix_pseudoinverse(J) {
+    var J_T = matrix_transpose(J);
+
+    if (J.length > J[0].length) {
+        var JT_J = matrix_multiply(J_T, J);
+        var JT_J_I = numeric.inv(JT_J);
+        var pseudo_I = matrix_multiply(JT_J_I, J_T);
+    }
+    if (J.length < J[0].length) {
+        var J_JT = matrix_multiply(J, J_T);
+        var J_JT_I = numeric.inv(J_JT);
+        var pseudo_I = matrix_multiply(J_T, J_JT_I);
+    }
+    return pseudo_I;
 }
     // STENCIL: reference matrix code has the following functions:
     //   matrix_multiply                done
