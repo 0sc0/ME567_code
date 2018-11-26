@@ -73,7 +73,7 @@ kineval.init = function init() {
 
     // initialize rosbridge connection to robot running ROS, if available
     // KE 2 : uncomment and add toggle 
-    //kineval.initrosbridge();
+    kineval.initrosbridge();
 
     // call user's initialization
     my_init();
@@ -639,7 +639,7 @@ kineval.initRobotLinksGeoms = function initRobotLinksGeoms() {
         robot.links[x].bbox = robot.links[x].bbox.setFromObject(robot.links[x].geom);
         // setFromPoints returns local space bbox, but no child traversal
         //robot.links[x].bbox = robot.links[x].bbox.setFromPoints(robot.links[x].geom.geometry.vertices);
-
+        //console.log("642");
         /* (73) (does not consider origin offset)
         bbox_geom = new THREE.BoxGeometry(
             robot.links[x].bbox.max.x-robot.links[x].bbox.min.x,
