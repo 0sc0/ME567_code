@@ -184,6 +184,15 @@ function matrix_pseudoinverse(J) {
     }
     return pseudo_I;
 }
+
+function vec_norm(vec) {
+    var l = vec.length;
+    var sum2 = 0;
+    for (i = 0; i < l; i++) {
+        sum2 += Math.pow(vec[i], 2);
+    }
+    return Math.pow(sum2, 0.5);
+}
     // STENCIL: reference matrix code has the following functions:
     //   matrix_multiply                done
     //   matrix_transpose

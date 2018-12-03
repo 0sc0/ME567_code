@@ -227,9 +227,9 @@ function FKstack(x) {
         }
         //prismatic joint—”…Ï
         if (robot.joints[x_parent].type == 'prismatic') {
-            var dx = robot.joints[x_parent].axis[0] * robot.joints[x_parent].extend;
-            var dy = robot.joints[x_parent].axis[1] * robot.joints[x_parent].extend;
-            var dz = robot.joints[x_parent].axis[2] * robot.joints[x_parent].extend;
+            var dx = robot.joints[x_parent].axis[0] * robot.joints[x_parent].angle;
+            var dy = robot.joints[x_parent].axis[1] * robot.joints[x_parent].angle;
+            var dz = robot.joints[x_parent].axis[2] * robot.joints[x_parent].angle;
             
             mat_move = generate_translation_matrix(dx, dy, dz);
             //console.log(robot.joints[x_parent].extend);

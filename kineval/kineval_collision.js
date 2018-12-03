@@ -235,6 +235,9 @@ function collision_FK_link(link, mstack, q) {
     return false;
 }
 
-function collision_FK_joint(joint, mstack, q) {
-
+function collision_FK_joint(joint, mstack_unused, q) {
+    var link = joint.child;
+    var link_j = robot.links[link];
+    var mstack = robot.links[link].xform;
+    return collision_FK_link(link_j, mstack, q);
 }

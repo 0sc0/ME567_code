@@ -39,7 +39,7 @@ kineval.applyControls = function robot_apply_controls(curRobot) {
             if (isNaN(curRobot.joints[x].control))
                 console.warn("kineval: control value for " + x +" is a nan");
 
-            curRobot.joints[x].extend +=  curRobot.joints[x].control;
+            curRobot.joints[x].angle +=  curRobot.joints[x].control;
         }
 
         //joint limits
@@ -47,8 +47,8 @@ kineval.applyControls = function robot_apply_controls(curRobot) {
         if (!dont_have_limit) {
             var bigger_limit = (robot.joints[x].angle > robot.joints[x].limit.upper);
             var smaller_limit = (robot.joints[x].angle < robot.joints[x].limit.lower);
-            var longer_limit = (robot.joints[x].extend > robot.joints[x].limit.upper);
-            var shorter_limit = (robot.joints[x].extend < robot.joints[x].limit.lower);
+            var longer_limit = (robot.joints[x].angle > robot.joints[x].limit.upper);
+            var shorter_limit = (robot.joints[x].angle < robot.joints[x].limit.lower);
 
             if (bigger_limit)
                 curRobot.joints[x].angle = robot.joints[x].limit.upper - 0.001;
@@ -57,10 +57,10 @@ kineval.applyControls = function robot_apply_controls(curRobot) {
                 curRobot.joints[x].angle = robot.joints[x].limit.lower + 0.001;
 
             if(longer_limit)
-                curRobot.joints[x].extend = robot.joints[x].limit.upper - 0.0001;
+                curRobot.joints[x].angle = robot.joints[x].limit.upper - 0.0001;
 
             if (shorter_limit)
-                curRobot.joints[x].extend = robot.joints[x].limit.lower + 0.0001;
+                curRobot.joints[x].angle = robot.joints[x].limit.lower + 0.0001;
         }
 
         // clear controls back to zero for next timestep
