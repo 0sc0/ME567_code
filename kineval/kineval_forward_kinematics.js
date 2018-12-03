@@ -232,7 +232,6 @@ function FKstack(x) {
             var dz = robot.joints[x_parent].axis[2] * robot.joints[x_parent].angle;
             
             mat_move = generate_translation_matrix(dx, dy, dz);
-            //console.log(robot.joints[x_parent].extend);
             mat_H = matrix_multiply(mat_H, mat_move);
         }
 

@@ -452,7 +452,7 @@ function iterateRRTConnect() {
 function iterateRRTStar() {
     var qrand = random_config();
     //console.log("qrand", qrand);
-    if (rrt_extend(T_a, qrand) !== "trapped") {
+    if (rrt_star_extend(T_a, qrand) !== "trapped") {
         if (rrt_connect(T_b, qnew) == "reached") {
             //draw_path(qnew);
             search_iterate = false;
@@ -591,12 +591,15 @@ function rrt_star_extend(T, q) {
         cspace_q = q;
         cspace_qnew = qnew;
 
-        for (i = 0; i < qnears_array.length; i++) {
-            if (!rrt_star_lineCollision(qnears_array[i], cspace_qnew)) {
-                var cost_now = rrt_star_cost(T, qnears_array[i]) + vec_norm(vec_sub(qnears_array[i], cspace_qnew));
+        for (i1 = 0; i1 < qnears_array.length; i1++) {
+            //console.log("qnears_array", qnears_array);
+            //console.log("i1", i1);
+            //console.log()
+            if (!rrt_star_lineCollision(qnears_array[i1], cspace_qnew)) {
+                var cost_now = rrt_star_cost(T, qnears_array[i1]) + vec_norm(vec_sub(qnears_array[i1], cspace_qnew));
                 if (cost_now < rrt_star_cost(T, cspace_qnew)) {
-                    console.log("qmin");
-                    qmin = qnears_array[i];
+                    //console.log("qmin");
+                    qmin = qnears_array[i1];
                 }
             }
         }
@@ -604,10 +607,10 @@ function rrt_star_extend(T, q) {
         var qmin_id = search_tree(qmin, T);
         insertTreeEdge(T, qmin_id, qnew_id);
 
-        for (i = 0; i < qnears_array.length; i++) {
-            var closer = (rrt_star_cost(T, qnears_array[i]) > rrt_star_cost(T, cspace_qnew) + vec_norm(vec_sub(qnears_array[i], cspace_qnew)));
-            if ((!rrt_star_lineCollision(qnears_array[i], cspace_qnew)) && (closer)) {
-                var qnears_id = search_tree(qnears_array[i], T);
+        for (i2 = 0; i2 < qnears_array.length; i2++) {
+            var closer = (rrt_star_cost(T, qnears_array[i2]) > rrt_star_cost(T, cspace_qnew) + vec_norm(vec_sub(qnears_array[i2], cspace_qnew)));
+            if ((!rrt_star_lineCollision(qnears_array[i2], cspace_qnew)) && (closer)) {
+                var qnears_id = search_tree(qnears_array[i2], T);
                 T.vertices[qnears_id].edges[0] = T.vertices[qnew_id];
 
                 insertTreeEdge(T, qnears_id, qnew_id);
@@ -646,6 +649,8 @@ function rrt_star_lineCollision(q1, q2) {
         q1q2_step[i] = -q1q2_step[i] / point_num;
     }
 
+    var q_test = q2;
+
     for (j = 0; j < point_num; j++) {
         q_test = vec_sub(q_test, q1q2_step);
         if (testCollision(q_test)) {
@@ -659,34 +664,50 @@ function rrt_star_cost(T, q) {
     var cost = 0;
     var q_now = q;
     var q_now_id = search_tree(q, T);
-
+    var debug = 0;
+    //console.log("T", T, "q", q);
+    //alert();
     while (true) {
+        //console.log("q_now", q_now);
+        //console.log("q_goal", vec_norm(vec_sub(q_goal, q_now)));
+        //console.log("q_init", vec_norm(vec_sub(q_init, q_now)));
+        //alert("cost");
         if ((vec_norm(vec_sub(q_goal, q_now)) < 0.001) || (vec_norm(vec_sub(q_init, q_now)) < 0.001)) {
-            break;
+            return cost;
         }
 
-        var q_parent = T1.vertices[q_now_id].edges[0];
+        var q_parent = T.vertices[q_now_id].edges[0].vertex;
         var q_parent_id = search_tree(q_parent, T);
 
         cost += vec_norm(vec_sub(q_now, q_parent));
-
+        //console.log(q_now, q_now_id);
+        //alert("cost");
         q_now = q_parent;
         q_now_id = q_parent_id;
+        //console.log(debug);
+        debug += 1;
     }
-
+    
     return cost;
 }
 
 function rrt_star_near(T, q, r) {
     var near_qs = [];
+    //console.log(T, q, r);
+    //alert("near");
 
-    for (i = 0; i < T.vertices.length; i++) {
-        if (vec_norm(vec_sub(T.vertices[i].vertex, q)) < r) {
+    for (ii = 0; ii < T.vertices.length; ii++) {
+        //alert("first i");
+        //alert(ii);
+        if (vec_norm(vec_sub(T.vertices[ii].vertex, q)) < r) {
             //var q_obj = {};
             //q_obj.vertex = T.vertices[i].vertex;
             //q_obj.cost = 0;
-            near_qs.push(T.vertices[i].vertex);
+            //console.log(T.vertices, i);
+            near_qs.push(T.vertices[ii].vertex);
         }
+        //alert("second i");
+        //alert(ii);
     }
     //T2.vertices[0].vertex
     return near_qs;
