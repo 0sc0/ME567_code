@@ -83,16 +83,16 @@ function initSearch() {
 
     // specify default the world for the planner 
     //  (stored as "range" global variable with name "planning_scene")
-    //planning_scene = "empty";
+    planning_scene = "empty";
     //planning_scene = "misc";
     //planning_scene = "narrow1";
     //planning_scene = "narrow2";
-    planning_scene = "three_sections";
+    //planning_scene = "three_sections";
 
     // specify default eps (epsilon) spatial resolution variable
     //   for RRT, specifies threshold radius for step size and reaching goal
     //eps = 0.1;
-    eps = 0.05;
+    eps = 0.1;
 
     // create event handlers for the mouse
     canvas = document.getElementById("myCanvas");
@@ -394,6 +394,20 @@ function iterateRRT() {
     //   insertTreeVertex - adds and displays new configuration vertex for a tree
     //   insertTreeEdge - adds and displays new tree edge between configurations
     //   drawHighlightedPath - renders a highlighted path in a tree
+    var qrand = random_config();
+
+    if (rrt_extend(T_a, qrand) == "reached") {
+        //draw_path(qnew);
+        search_iterate = false;
+        //alert();
+        return "succeeded";
+    }
+    else {
+        return "extended";
+    }
+
+    return "trapped";
+
 }
 
 function iterateRRTConnect() {
@@ -450,6 +464,22 @@ function iterateRRTConnect() {
 }
 
 function iterateRRTStar() {
+    var qrand = random_config();
+
+    if (rrt_star_extend(T_a, qrand) == "reached") {
+        //draw_path(qnew);
+        search_iterate = false;
+        //alert();
+        return "succeeded";
+    }
+    else {
+        return "extended";
+    }
+
+    return "trapped";
+}
+
+function iterateRRT_connect_Star() {
     var qrand = random_config();
     //console.log("qrand", qrand);
     if (rrt_star_extend(T_a, qrand) !== "trapped") {
@@ -531,37 +561,41 @@ function rrt_extend(T, q) {
     qnew = new_config(qnear, q);
     //if (qnew[0] != "NaN") {
     if (!testCollision(qnew)) {
-        //console.log("qnew", qnew);
         insertTreeVertex(T, qnew);
-        //console.log("qnew", qnew);
         qnear_id = search_tree(qnear, T);
         qnew_id = search_tree(qnew, T);
 
         insertTreeEdge(T, qnear_id, qnew_id);
-        //q_new.parent = qnear;
-        //qnew.visited = true;
 
         cspace_q = q;
         cspace_qnew = qnew;
         //console.log("norm", vec_norm(vec_sub(cspace_q, cspace_qnew)));
-        if (vec_norm(vec_sub(cspace_q, cspace_qnew)) < 0.2) {
-            //判断q点是否为另一树的节点
-            if (T.vertices[0].vertex == T_a.vertices[0].vertex) {
-                var T_other = T_b;
-            }
-            else {
-                var T_other = T_a;
-            }
-            if (search_tree(q, T_other) !== false) {
-                draw_path(T, q, qnear);
+        if (search_alg == "RRT") {
+            if (vec_norm(vec_sub(q_goal, cspace_qnew)) < eps) {
+                draw_path(T, q, qnew);
                 return "reached";
             }
-            
         }
-        else
-            return "advanced";
+
+        if (search_alg == "RRT-connect") {
+            if (vec_norm(vec_sub(cspace_q, cspace_qnew)) < eps) {
+                //判断q点是否为另一树的节点
+                if (T.vertices[0].vertex == T_a.vertices[0].vertex) {
+                    var T_other = T_b;
+                }
+                else {
+                    var T_other = T_a;
+                }
+                if (search_tree(q, T_other) !== false) {
+                    draw_path(T, q, qnear);
+                    return "reached";
+                }
+
+            }
+            else
+                return "advanced";
+        }
     }
-    //console.log("trapped");
     return "trapped";
 }
 
@@ -581,7 +615,7 @@ function rrt_star_extend(T, q) {
         qnew_id = search_tree(qnew, T);
 
         var qmin = qnearst;
-        var r = 2.5;
+        var r = 1.5;
         var qnears_array = rrt_star_near(T, q, r);
 
         insertTreeEdge(T, qnearst_id, qnew_id);
@@ -612,28 +646,37 @@ function rrt_star_extend(T, q) {
             if ((!rrt_star_lineCollision(qnears_array[i2], cspace_qnew)) && (closer)) {
                 var qnears_id = search_tree(qnears_array[i2], T);
                 T.vertices[qnears_id].edges[0] = T.vertices[qnew_id];
-
                 insertTreeEdge(T, qnears_id, qnew_id);
                 }
             }
 
-        //console.log("norm", vec_norm(vec_sub(cspace_q, cspace_qnew)));
-        if (vec_norm(vec_sub(cspace_q, cspace_qnew)) < 0.2) {
-            //判断q点是否为另一树的节点
-            if (T.vertices[0].vertex == T_a.vertices[0].vertex) {
-                var T_other = T_b;
-            }
-            else {
-                var T_other = T_a;
-            }
-            if (search_tree(q, T_other) !== false) {
-                draw_path(T, q, qnearst);
+        if (search_alg = "RRT-star") {
+            if (vec_norm(vec_sub(q_goal, cspace_qnew)) < eps) {
+                draw_path(T, q, qnew);
                 return "reached";
             }
-
+            else
+                return "advanced";
         }
-        else
-            return "advanced";
+
+        if (search_alg = "RRT-connect-Star") {
+            if (vec_norm(vec_sub(cspace_q, cspace_qnew)) < eps) {
+                //判断q点是否为另一树的节点
+                if (T.vertices[0].vertex == T_a.vertices[0].vertex) {
+                    var T_other = T_b;
+                }
+                else {
+                    var T_other = T_a;
+                }
+                if (search_tree(q, T_other) !== false) {
+                    draw_path(T, q, qnearst);
+                    return "reached";
+                }
+
+            }
+            else
+                return "advanced";
+        }
     }
     //console.log("trapped");
     return "trapped";
@@ -730,27 +773,10 @@ function draw_path(T2, q1, q2) {
     else {
         var T1 = T_a;
     }
-    //console.log("T1", T1);
-    //console.log("T2", T2);
 
-    var q1_id = search_tree(q1, T1);
     var q2_id = search_tree(q2, T2);
-    
-    //console.log("q1_id", q1_id);
-    //console.log("q2_id", q2_id);
-
-    var path_1 = [];
     var path_2 = [];
-    
 
-    while (true){
-        path_1.push(T1.vertices[q1_id]);
-        var q1_obj = T1.vertices[q1_id].edges[0];
-        q1_id = search_tree(q1_obj.vertex, T1);
-        if ((vec_norm(vec_sub(q_goal, q1_obj.vertex)) < 0.001) || (vec_norm(vec_sub(q_init, q1_obj.vertex)) < 0.001)) {
-            break;
-        }
-    }
     while (true) {
         path_2.push(T2.vertices[q2_id]);
         var q2_obj = T2.vertices[q2_id].edges[0];
@@ -759,13 +785,33 @@ function draw_path(T2, q1, q2) {
             break;
         }
     }
-    //console.log("path1", path_1);
-    //console.log("path2", path_2);
 
-    path_1.reverse();
-    var path_all = path_1.concat(path_2);
-    //console.log("draw", path_all);
-    drawHighlightedPath(path_all);
+    if (search_alg == "RRT-connect") {
+        var q1_id = search_tree(q1, T1);
+        var path_1 = [];
+        while (true) {
+            path_1.push(T1.vertices[q1_id]);
+            var q1_obj = T1.vertices[q1_id].edges[0];
+            q1_id = search_tree(q1_obj.vertex, T1);
+            if ((vec_norm(vec_sub(q_goal, q1_obj.vertex)) < 0.001) || (vec_norm(vec_sub(q_init, q1_obj.vertex)) < 0.001)) {
+                break;
+            }
+        }
+        path_1.reverse();
+        var path_all = path_1.concat(path_2);
+        //console.log("draw", path_all);
+        drawHighlightedPath(path_all);
+    }
+
+    if ((search_alg == "RRT") || (search_alg == "RRT-star")) {
+        var q_init_obj = {};
+        var q_goal_obj = {};
+        q_init_obj.vertex = q_init;
+        q_goal_obj.vertex = q_goal;
+        path_2.push(q_init_obj);
+        path_2.unshift(q_goal_obj);
+        drawHighlightedPath(path_2);
+    }
     
 }
 
