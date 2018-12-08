@@ -125,6 +125,13 @@ kineval.robotRRTPlannerInit = function robot_rrt_planner_init() {
 
     // make sure the rrt iterations are not running faster than animation update
     cur_time = Date.now();
+
+    //initial trees
+    T_a = tree_init(q_start_config);
+    T_b = tree_init(q_goal_config);
+
+    //initial eps
+    eps = 0.2;
 }
 
 
@@ -150,8 +157,26 @@ function robot_rrt_planner_iterate() {
     //   tree_init - creates a tree of configurations
     //   tree_add_vertex - adds and displays new configuration vertex for a tree
     //   tree_add_edge - adds and displays new tree edge between configurations
-    }
+        var qrand = random_config();
+        //console.log("qrand", qrand);
+        if (rrt_extend(T_a, qrand) !== "trapped") {
+            if (rrt_connect(T_b, qnew) == "reached") {
+                //draw_path(qnew);
+                rrt_iterate = false;
+                return "succeeded";
+            }
+        }
+        else {
+            //console.log("before", T_a, T_b);
+            var T_temp = T_a;
+            T_a = T_b;
+            T_b = T_temp;
+            //console.log("after", T_a, T_b);
+            return "failed"
+        }
 
+        return "extended";
+    }
 }
 
 //////////////////////////////////////////////////
@@ -237,12 +262,148 @@ function tree_add_edge(tree,q1_idx,q2_idx) {
     //   find_path
     //   path_dfs
 
+function rrt_extend(T, q) {
+    //console.log("T", T);
+    //console.log("q", q);
+    //alert();
+    var qnear = nearest_neighbor(T, q);
+    //console.log("qnear", qnear);
+    qnew = new_config(qnear, q);
+    //if (qnew[0] != "NaN") {
+    console.log(qnew);
+    console.log(kineval.poseIsCollision(qnew));
+    if (kineval.poseIsCollision(qnew) == false) {
+        tree_add_vertex(T, qnew);
+        qnear_id = search_tree(qnear, T);
+        qnew_id = search_tree(qnew, T);
 
+        tree_add_edge(T, qnear_id, qnew_id);
 
+        cspace_q = q;
+        cspace_qnew = qnew;
+        //console.log("norm", vec_norm(vec_sub(cspace_q, cspace_qnew)));
+        if (rrt_alg < 0.01) {
+            if (vec_norm(vec_sub(q_goal, cspace_qnew)) < eps) {
+                draw_path(T, q, qnew);
+                return "reached";
+            }
+        }
 
+        if (Math.abs(rrt_alg -1) < 0.01) {
+            if (vec_norm(vec_sub(cspace_q, cspace_qnew)) < eps) {
+                //判断q点是否为另一树的节点
+                if (T.vertices[0].vertex == T_a.vertices[0].vertex) {
+                    var T_other = T_b;
+                }
+                else {
+                    var T_other = T_a;
+                }
+                if (search_tree(q, T_other) !== false) {
+                    //draw_path(T, q, qnear);
+                    return "reached";
+                }
 
+            }
+            else
+                return "advanced";
+        }
+    }
+    return "trapped";
+}
 
+function rrt_connect(T, q) {
+    var S = rrt_extend(T, q);
 
+    while (S == "advanced") {
+        S = rrt_extend(T, q);
+        //console.log("s", S);
+    }
+    return S;
+}
 
+function random_config() {
+    var q_base = new Array(6);
 
+    q_base[0] = robot_boundary[1][0] + Math.random() * (robot_boundary[0][0] - robot_boundary[1][0]);
+    q_base[1] = 0;
+    q_base[2] = robot_boundary[1][2] + Math.random() * (robot_boundary[0][2] - robot_boundary[1][2]);
 
+    q_base[3] = 0;
+    q_base[4] = Math.random() * 2 * Math.PI;
+    q_base[5] = 0;
+
+    var q_joints = [];
+    var q_joints_index = 0;
+
+    var x;
+    for (x in robot.joints) {
+        if (robot.joints[x].limit) {
+            q_joints[q_joints_index] = robot.joints[x].limit.lower + Math.random() * (robot.joints[x].limit.upper - robot.joints[x].limit.lower);
+        }
+        else {
+            q_joints[q_joints_index] = Math.random() * 2 * Math.PI;
+        }
+        q_joints_index += 1;
+    }
+
+    var q_all = q_base.concat(q_joints);
+    return q_all;
+}
+
+function new_config(q_nearst, qrand) {
+    var step_l = eps;
+    //console.log(q_nearst);
+    var cspace_q_nearst = q_nearst;
+    var cspace_qrand = qrand;
+    var vector = vec_sub(cspace_qrand, cspace_q_nearst);
+    var vec_nor = vector_normalize(vector);
+    //console.log
+    var q_new = [];
+    for (i4 = 0; i4 < q_nearst.length; i4++) {
+        q_new[i4] = q_nearst[i4] + step_l * vec_nor[i4];
+    }
+    //显示高亮（未定）
+    //T.vertices[i].vertex[j].geom.material.color = { r: 1, g: 0, b: 0 };
+    //draw_2D_configuration([x_new, y_new]);
+    return q_new;
+}
+
+function search_tree(q_s, tree_s) {
+    //tree.vertices[0].vertex = q;
+    //console.log("qs", q_s);
+    //console.log("trees", tree_s);
+    var ver_n = tree_s.vertices.length;
+    for (n = 0; n < ver_n; n++) {
+        //console.log(n);
+        //console.log("qs", q_s);
+        //console.log("tree", tree_s.vertices[n].vertex);
+        //console.log("norm", vec_norm(vec_sub(q_s, tree_s.vertices[n].vertex)));
+        if (vec_norm(vec_sub(q_s, tree_s.vertices[n].vertex)) < 0.001) {
+            //console.log("return", n);
+            return n;
+        }
+    }
+    return false;
+}
+
+function nearest_neighbor(tree, q_g) {
+    var cspace_q = q_g;
+    var distance = 10000000000000000;
+    var nearest_q
+    for (ii = 0; ii < tree.vertices.length; ii++) {
+        //console.log("tree", tree);
+        //console.log("tree.vertices[i].vertex", tree.vertices[i].vertex);
+        var cspace_tree = tree.vertices[ii].vertex;
+        var dist_now = vec_norm(vec_sub(cspace_q, cspace_tree));
+
+        //console.log("dist_now", dist_now);
+        if (dist_now < distance) {
+            distance = dist_now;
+            //console.log("i", i);
+            //console.log("tree", tree);
+            nearest_q = tree.vertices[ii].vertex;
+        }
+    }
+
+    return nearest_q;
+}

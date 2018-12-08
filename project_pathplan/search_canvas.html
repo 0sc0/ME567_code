@@ -527,7 +527,7 @@ function nearest_neighbor(tree, q_g) {
 }
 
 function new_config(q_nearst, qrand) {
-    var step_l = 0.1;
+    var step_l = eps;
     //console.log(q_nearst);
     var cspace_q_nearst = q_nearst;
     var cspace_qrand = qrand;

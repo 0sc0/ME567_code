@@ -41,7 +41,7 @@ kineval.robotIsCollision = function robot_iscollision() {
 
     // test for collision and change base color based on the result
     collision_result = kineval.poseIsCollision(q_robot_config);
-
+    //console.log(collision_result);
     robot.collision = collision_result;
 }
 
@@ -132,13 +132,13 @@ function traverse_collision_forward_kinematics_link(link,mstack,q) {
 }
 
 function robot_collision_forward_kinematics(q) {
-    var i;
+    var i5;
     //var j;
 
-    for (i in robot.links) {
+    for (i5 in robot.links) {
         //if (i == robot.base)
         //    continue;
-        var col = collision_FK_link(robot.links[i], robot.links[i].xform, q);
+        var col = collision_FK_link(robot.links[i5], robot.links[i5].xform, q);
         if (col != false) {
             return col;
         }

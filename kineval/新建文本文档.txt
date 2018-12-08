@@ -1,0 +1,48 @@
+function draw_path(T2, q1, q2) {
+    if (T2.vertices[0].vertex == T_a.vertices[0].vertex) {
+        var T1 = T_b;
+    }
+    else {
+        var T1 = T_a;
+    }
+
+    var q2_id = search_tree(q2, T2);
+    var path_2 = [];
+
+    while (true) {
+        path_2.push(T2.vertices[q2_id]);
+        var q2_obj = T2.vertices[q2_id].edges[0];
+        q2_id = search_tree(q2_obj.vertex, T2);
+        if ((vec_norm(vec_sub(q_goal, q2_obj.vertex)) < 0.001) || (vec_norm(vec_sub(q_init, q2_obj.vertex)) < 0.001)) {
+            break;
+        }
+    }
+
+    if (search_alg == "RRT-connect") {
+        var q1_id = search_tree(q1, T1);
+        var path_1 = [];
+        while (true) {
+            path_1.push(T1.vertices[q1_id]);
+            var q1_obj = T1.vertices[q1_id].edges[0];
+            q1_id = search_tree(q1_obj.vertex, T1);
+            if ((vec_norm(vec_sub(q_goal, q1_obj.vertex)) < 0.001) || (vec_norm(vec_sub(q_init, q1_obj.vertex)) < 0.001)) {
+                break;
+            }
+        }
+        path_1.reverse();
+        var path_all = path_1.concat(path_2);
+        //console.log("draw", path_all);
+        drawHighlightedPath(path_all);
+    }
+
+    if ((search_alg == "RRT") || (search_alg == "RRT-star")) {
+        var q_init_obj = {};
+        var q_goal_obj = {};
+        q_init_obj.vertex = q_init;
+        q_goal_obj.vertex = q_goal;
+        path_2.push(q_init_obj);
+        path_2.unshift(q_goal_obj);
+        drawHighlightedPath(path_2);
+    }
+    
+}
