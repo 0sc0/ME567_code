@@ -127,11 +127,12 @@ kineval.robotRRTPlannerInit = function robot_rrt_planner_init() {
     cur_time = Date.now();
 
     //initial trees
+    //console.log("start", q_start_config);
     T_a = tree_init(q_start_config);
     T_b = tree_init(q_goal_config);
 
     //initial eps
-    eps = 0.2;
+    eps = 1.5;
 }
 
 
@@ -161,9 +162,8 @@ function robot_rrt_planner_iterate() {
         //console.log("qrand", qrand);
         if (rrt_extend(T_a, qrand) !== "trapped") {
             if (rrt_connect(T_b, qnew) == "reached") {
-                //draw_path(qnew);
                 rrt_iterate = false;
-                return "succeeded";
+                return "reached";
             }
         }
         else {
@@ -270,8 +270,8 @@ function rrt_extend(T, q) {
     //console.log("qnear", qnear);
     qnew = new_config(qnear, q);
     //if (qnew[0] != "NaN") {
-    console.log(qnew);
-    console.log(kineval.poseIsCollision(qnew));
+    //console.log(qnew);
+    //console.log(kineval.poseIsCollision(qnew));
     if (kineval.poseIsCollision(qnew) == false) {
         tree_add_vertex(T, qnew);
         qnear_id = search_tree(qnear, T);
@@ -283,7 +283,7 @@ function rrt_extend(T, q) {
         cspace_qnew = qnew;
         //console.log("norm", vec_norm(vec_sub(cspace_q, cspace_qnew)));
         if (rrt_alg < 0.01) {
-            if (vec_norm(vec_sub(q_goal, cspace_qnew)) < eps) {
+            if (vec_norm(vec_sub(q_goal_config, cspace_qnew)) < eps) {
                 draw_path(T, q, qnew);
                 return "reached";
             }
@@ -299,7 +299,7 @@ function rrt_extend(T, q) {
                     var T_other = T_a;
                 }
                 if (search_tree(q, T_other) !== false) {
-                    //draw_path(T, q, qnear);
+                    draw_path(T, q, qnear);
                     return "reached";
                 }
 
@@ -406,4 +406,66 @@ function nearest_neighbor(tree, q_g) {
     }
 
     return nearest_q;
+}
+
+function draw_path(T2, q1, q2) {
+    if (T2.vertices[0].vertex == T_a.vertices[0].vertex) {
+        var T1 = T_b;
+    }
+    else {
+        var T1 = T_a;
+    }
+
+    var q2_id = search_tree(q2, T2);
+    var path_2 = [];
+
+    while (true) {
+        path_2.push(T2.vertices[q2_id]);
+        var q2_obj = T2.vertices[q2_id].edges[0];
+        q2_id = search_tree(q2_obj.vertex, T2);
+        if ((vec_norm(vec_sub(q_goal_config, q2_obj.vertex)) < 0.001) || (vec_norm(vec_sub(q_start_config, q2_obj.vertex)) < 0.001)) {
+            path_2.push(T2.vertices[q2_id]);
+            break;
+        }
+    }
+    //console.log("alg", rrt_alg);
+    if (rrt_alg == 1) {     //rrt_connect
+        var q1_id = search_tree(q1, T1);
+        var path_1 = [];
+        //console.log(T1);
+        //console.log(T2);
+        while (true) {
+            //console.log(T1.vertices[q1_id]);
+            path_1.push(T1.vertices[q1_id]);
+            var q1_obj = T1.vertices[q1_id].edges[0];
+            q1_id = search_tree(q1_obj.vertex, T1);
+            if ((vec_norm(vec_sub(q_goal_config, q1_obj.vertex)) < 0.001) || (vec_norm(vec_sub(q_start_config, q1_obj.vertex)) < 0.001)) {
+                path_1.push(T1.vertices[q1_id]);
+                break;
+            }
+        }
+        path_1.reverse();
+        var path_all = path_1.concat(path_2);
+        //console.log("draw", path_all);
+        drawHighlightedPath(path_all);
+    }
+
+    if ((rrt_alg == 0) || (rrt_alg == 2)) {
+        var q_init_obj = {};
+        var q_goal_obj = {};
+        q_init_obj.vertex = q_start_config;
+        q_goal_obj.vertex = q_goal_config;
+        path_2.push(q_init_obj);
+        path_2.unshift(q_goal_obj);
+        drawHighlightedPath(path_2);
+    }
+}
+
+function drawHighlightedPath(path) {
+    console.log(path);
+    kineval.motion_plan = path;
+    for (var i = 0; i < path.length; i++) {
+        path[i].geom.material.color = { r: 1, g: 0, b: 0 };
+    }
+
 }

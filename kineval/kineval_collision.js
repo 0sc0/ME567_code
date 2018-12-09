@@ -40,6 +40,7 @@ kineval.robotIsCollision = function robot_iscollision() {
     }
 
     // test for collision and change base color based on the result
+    //console.log(q_robot_config);
     collision_result = kineval.poseIsCollision(q_robot_config);
     //console.log(collision_result);
     robot.collision = collision_result;
@@ -132,17 +133,65 @@ function traverse_collision_forward_kinematics_link(link,mstack,q) {
 }
 
 function robot_collision_forward_kinematics(q) {
-    var i5;
-    //var j;
+    
+    //偷天换日step1，将机器人c坐标更换为q的值
+    var q_temp = {};
+    q_temp[0] = robot.origin.xyz[0];
+    q_temp[1] = robot.origin.xyz[1];
+    q_temp[2] = robot.origin.xyz[2];
+    q_temp[3] = robot.origin.rpy[0];
+    q_temp[4] = robot.origin.rpy[1];
+    q_temp[5] = robot.origin.rpy[2];
 
-    for (i5 in robot.links) {
+    robot.origin.xyz[0] = q[0];
+    robot.origin.xyz[1] = q[1];
+    robot.origin.xyz[2] = q[2];
+    robot.origin.rpy[0] = q[3];
+    robot.origin.rpy[1] = q[4];
+    robot.origin.rpy[2] = q[5];
+
+    var i7 = 6;
+    for (var i6 in robot.joints) {
+        q_temp[i6] = robot.joints[i6].angle;
+        robot.joints[i6].angle = q[i7];
+        i7 += 1;
+        //console.log(i6, robot.joints[i6].angle);
+    }
+    kineval.robotForwardKinematics();
+    //console.log(joint_q_temp);
+    //alert();
+    for (var i5 in robot.links) {
         //if (i == robot.base)
         //    continue;
+
         var col = collision_FK_link(robot.links[i5], robot.links[i5].xform, q);
+
         if (col != false) {
+            //偷天换日step2，将坐标改回去
+            robot.origin.xyz[0] = q_temp[0];
+            robot.origin.xyz[1] = q_temp[1];
+            robot.origin.xyz[2] = q_temp[2];
+            robot.origin.rpy[0] = q_temp[3];
+            robot.origin.rpy[1] = q_temp[4];
+            robot.origin.rpy[2] = q_temp[5];
+            for (var i8 in robot.joints) {
+                robot.joints[i8].angle = q_temp[i8];
+            }
+            kineval.robotForwardKinematics();
             return col;
         }
     }
+    //偷天换日step2，将坐标改回去
+    robot.origin.xyz[0] = q_temp[0];
+    robot.origin.xyz[1] = q_temp[1];
+    robot.origin.xyz[2] = q_temp[2];
+    robot.origin.rpy[0] = q_temp[3];
+    robot.origin.rpy[1] = q_temp[4];
+    robot.origin.rpy[2] = q_temp[5];
+    for (var i8 in robot.joints) {
+        robot.joints[i8].angle = q_temp[i8];
+    }
+    kineval.robotForwardKinematics();
     return false;
 }
 

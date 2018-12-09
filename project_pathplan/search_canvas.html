@@ -78,8 +78,8 @@ function initSearch() {
     //search_alg = "greedy-best-first";  
     //search_alg = "A-star";  
     //search_alg = "RRT";  
-    //search_alg = "RRT-connect";  
-    search_alg = "RRT-star";  
+    search_alg = "RRT-connect";  
+    //search_alg = "RRT-star";  
 
     // specify default the world for the planner 
     //  (stored as "range" global variable with name "planning_scene")
@@ -590,7 +590,6 @@ function rrt_extend(T, q) {
                     draw_path(T, q, qnear);
                     return "reached";
                 }
-
             }
             else
                 return "advanced";
@@ -782,6 +781,7 @@ function draw_path(T2, q1, q2) {
         var q2_obj = T2.vertices[q2_id].edges[0];
         q2_id = search_tree(q2_obj.vertex, T2);
         if ((vec_norm(vec_sub(q_goal, q2_obj.vertex)) < 0.001) || (vec_norm(vec_sub(q_init, q2_obj.vertex)) < 0.001)) {
+            path_2.push(T2.vertices[q2_id]);
             break;
         }
     }
@@ -794,6 +794,7 @@ function draw_path(T2, q1, q2) {
             var q1_obj = T1.vertices[q1_id].edges[0];
             q1_id = search_tree(q1_obj.vertex, T1);
             if ((vec_norm(vec_sub(q_goal, q1_obj.vertex)) < 0.001) || (vec_norm(vec_sub(q_init, q1_obj.vertex)) < 0.001)) {
+                path_1.push(T1.vertices[q1_id]);
                 break;
             }
         }

@@ -1,5 +1,13 @@
 ?robot=robots/fetch/fetch.urdf.js
 
+?world=worlds/world_random.js
+?world=worlds/world_barrier.js
+?world=worlds/world_basic.js
+?world=worlds/world_empty.js
+?world=worlds/world_local_minima.js
+?world=worlds/world_s.js
+
+
 console.log(robot.joints.torso_lift_joint.angle)
 kineval.setpoints[pose_id]["r_gripper_finger_joint"]
 
