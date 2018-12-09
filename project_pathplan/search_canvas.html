@@ -78,8 +78,8 @@ function initSearch() {
     //search_alg = "greedy-best-first";  
     //search_alg = "A-star";  
     //search_alg = "RRT";  
-    search_alg = "RRT-connect";  
-    //search_alg = "RRT-star";  
+    //search_alg = "RRT-connect";  
+    search_alg = "RRT-star";  
 
     // specify default the world for the planner 
     //  (stored as "range" global variable with name "planning_scene")
@@ -614,7 +614,10 @@ function rrt_star_extend(T, q) {
         qnew_id = search_tree(qnew, T);
 
         var qmin = qnearst;
-        var r = 1.5;
+        //var r = 1.5;
+        var num = T_a.vertices.length + T_b.vertices.length
+        var r = 1000 * Math.pow((Math.log(num) / num), qmin.length);
+        //console.log(r);
         var qnears_array = rrt_star_near(T, q, r);
 
         insertTreeEdge(T, qnearst_id, qnew_id);

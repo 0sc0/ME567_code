@@ -140,7 +140,7 @@ kineval.robotRRTPlannerInit = function robot_rrt_planner_init() {
 function robot_rrt_planner_iterate() {
 
     var i;
-    rrt_alg = 1;  // 0: basic rrt (OPTIONAL), 1: rrt_connect (REQUIRED)
+    rrt_alg = 1;  // 0: basic rrt (OPTIONAL), 1: rrt_connect (REQUIRED), 2:rrt_star
 
     if (rrt_iterate && (Date.now()-cur_time > 10)) {
         cur_time = Date.now();
@@ -167,11 +167,12 @@ function robot_rrt_planner_iterate() {
             }
         }
         else {
-            //console.log("before", T_a, T_b);
-            var T_temp = T_a;
-            T_a = T_b;
-            T_b = T_temp;
-            //console.log("after", T_a, T_b);
+            //rrt connect
+            if (Math.abs(rrt_alg - 1) < 0.01) {
+                var T_temp = T_a;
+                T_a = T_b;
+                T_b = T_temp;
+            }
             return "failed"
         }
 
@@ -282,13 +283,16 @@ function rrt_extend(T, q) {
         cspace_q = q;
         cspace_qnew = qnew;
         //console.log("norm", vec_norm(vec_sub(cspace_q, cspace_qnew)));
+        //RRT
         if (rrt_alg < 0.01) {
+            //console.log(vec_norm(vec_sub(q_goal_config, cspace_qnew)));
             if (vec_norm(vec_sub(q_goal_config, cspace_qnew)) < eps) {
+                console.log(vec_norm(vec_sub(q_goal_config, cspace_qnew)));
                 draw_path(T, q, qnew);
                 return "reached";
             }
         }
-
+        //RRT_connect
         if (Math.abs(rrt_alg -1) < 0.01) {
             if (vec_norm(vec_sub(cspace_q, cspace_qnew)) < eps) {
                 //判断q点是否为另一树的节点
@@ -307,6 +311,8 @@ function rrt_extend(T, q) {
             else
                 return "advanced";
         }
+
+
     }
     return "trapped";
 }
@@ -451,10 +457,11 @@ function draw_path(T2, q1, q2) {
     }
 
     if ((rrt_alg == 0) || (rrt_alg == 2)) {
-        var q_init_obj = {};
-        var q_goal_obj = {};
-        q_init_obj.vertex = q_start_config;
-        q_goal_obj.vertex = q_goal_config;
+        //var q_start_id = search_tree(q1, T_a);
+        var q_init_obj = T_a.vertices[0];
+        var q_goal_obj = T_b.vertices[0];
+        //q_init_obj.vertex = q_start_config;
+        //q_goal_obj.vertex = q_goal_config;
         path_2.push(q_init_obj);
         path_2.unshift(q_goal_obj);
         drawHighlightedPath(path_2);
