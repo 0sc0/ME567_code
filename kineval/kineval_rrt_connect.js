@@ -140,7 +140,7 @@ kineval.robotRRTPlannerInit = function robot_rrt_planner_init() {
 function robot_rrt_planner_iterate() {
 
     var i;
-    rrt_alg = 1;  // 0: basic rrt (OPTIONAL), 1: rrt_connect (REQUIRED), 2:rrt_star
+    rrt_alg = 2;  // 0: basic rrt (OPTIONAL), 1: rrt_connect (REQUIRED), 2:rrt_star?
 
     if (rrt_iterate && (Date.now()-cur_time > 10)) {
         cur_time = Date.now();
@@ -160,25 +160,43 @@ function robot_rrt_planner_iterate() {
     //   tree_add_edge - adds and displays new tree edge between configurations
         var qrand = random_config();
         //console.log("qrand", qrand);
-        if (rrt_extend(T_a, qrand) !== "trapped") {
-            if (rrt_connect(T_b, qnew) == "reached") {
-                rrt_iterate = false;
-                return "reached";
+        //rrt and rrt_connect
+        if ((rrt_alg == 0) || (rrt_alg == 1)) {
+            if (rrt_extend(T_a, qrand) !== "trapped") {
+                if (rrt_connect(T_b, qnew) == "reached") {
+                    rrt_iterate = false;
+                    return "reached";
+                }
             }
-        }
-        else {
-            //rrt connect
-            if (Math.abs(rrt_alg - 1) < 0.01) {
-                var T_temp = T_a;
-                T_a = T_b;
-                T_b = T_temp;
+            else {
+                //rrt connect
+                if (Math.abs(rrt_alg - 1) < 0.01) {
+                    var T_temp = T_a;
+                    T_a = T_b;
+                    T_b = T_temp;
+                }
+                return "failed";
             }
-            return "failed"
+
+            return "extended";
         }
 
-        return "extended";
+        //rrt_star
+        if (rrt_alg == 2) {
+            if (rrt_star_extend(T_a, qrand) == "reached") {
+                //draw_path(qnew);
+                search_iterate = false;
+                //alert();
+                return "reached";
+            }
+            else {
+                return "extended";
+            }
+            return "failed";
+        }
     }
 }
+
 
 //////////////////////////////////////////////////
 /////     STENCIL SUPPORT FUNCTIONS
@@ -474,5 +492,143 @@ function drawHighlightedPath(path) {
     for (var i = 0; i < path.length; i++) {
         path[i].geom.material.color = { r: 1, g: 0, b: 0 };
     }
+}
 
+function rrt_star_extend(T, q) {
+    //console.log("T", T);
+    //console.log("q", q);
+    //alert();
+    var qnearst = nearest_neighbor(T, q);
+    //console.log("qnear", qnear);
+    qnew = new_config(qnearst, q);
+    //if (qnew[0] != "NaN") {
+    if (!kineval.poseIsCollision(qnew)) {
+        //console.log("qnew", qnew);
+        tree_add_vertex(T, qnew);
+        //console.log("qnew", qnew);
+        qnearst_id = search_tree(qnearst, T);
+        qnew_id = search_tree(qnew, T);
+
+        var qmin = qnearst;
+        //var r = 1.5;
+        var num = T_a.vertices.length + T_b.vertices.length
+        var r = 10000 * Math.pow((Math.log(num) / num), qmin.length);
+        //console.log(r);
+        var qnears_array = rrt_star_near(T, q, r);
+
+        tree_add_edge(T, qnearst_id, qnew_id);
+        //q_new.parent = qnearst;
+        //qnew.visited = true;
+
+        cspace_q = q;
+        cspace_qnew = qnew;
+
+        for (i1 = 0; i1 < qnears_array.length; i1++) {
+            //console.log("qnears_array", qnears_array);
+            //console.log("i1", i1);
+            //console.log()
+            if (!rrt_star_lineCollision(qnears_array[i1], cspace_qnew)) {
+                var cost_now = rrt_star_cost(T, qnears_array[i1]) + vec_norm(vec_sub(qnears_array[i1], cspace_qnew));
+                if (cost_now < rrt_star_cost(T, cspace_qnew)) {
+                    //console.log("qmin");
+                    qmin = qnears_array[i1];
+                }
+            }
+        }
+
+        var qmin_id = search_tree(qmin, T);
+        tree_add_edge(T, qmin_id, qnew_id);
+
+        for (i2 = 0; i2 < qnears_array.length; i2++) {
+            var closer = (rrt_star_cost(T, qnears_array[i2]) > rrt_star_cost(T, cspace_qnew) + vec_norm(vec_sub(qnears_array[i2], cspace_qnew)));
+            if ((!rrt_star_lineCollision(qnears_array[i2], cspace_qnew)) && (closer)) {
+                var qnears_id = search_tree(qnears_array[i2], T);
+                T.vertices[qnears_id].edges[0] = T.vertices[qnew_id];
+                tree_add_edge(T, qnears_id, qnew_id);
+            }
+        }
+
+        if (vec_norm(vec_sub(q_goal_config, cspace_qnew)) < eps) {
+            draw_path(T, q, qnew);
+            return "reached";
+        }
+        else
+            return "advanced";
+    }
+    //console.log("trapped");
+    return "trapped";
+}
+
+function rrt_star_near(T, q, r) {
+    var near_qs = [];
+    //console.log(T, q, r);
+    //alert("near");
+
+    for (ii = 0; ii < T.vertices.length; ii++) {
+        //alert("first i");
+        //alert(ii);
+        if (vec_norm(vec_sub(T.vertices[ii].vertex, q)) < r) {
+            //var q_obj = {};
+            //q_obj.vertex = T.vertices[i].vertex;
+            //q_obj.cost = 0;
+            //console.log(T.vertices, i);
+            near_qs.push(T.vertices[ii].vertex);
+        }
+        //alert("second i");
+        //alert(ii);
+    }
+    //T2.vertices[0].vertex
+    return near_qs;
+}
+
+function rrt_star_lineCollision(q1, q2) {
+    var q1q2_vec = vec_sub(q1, q2);
+    var q1q2_distance = vec_norm(q1q2_vec);
+    var point_num = Math.floor(q1q2_distance / eps);
+    var q1q2_step = q1q2_vec;
+
+    for (i = 0; i < q1q2_step.length; i++) {
+        q1q2_step[i] = -q1q2_step[i] / point_num;
+    }
+
+    var q_test = q2;
+
+    for (j = 0; j < point_num; j++) {
+        q_test = vec_sub(q_test, q1q2_step);
+        if (kineval.poseIsCollision(q_test)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function rrt_star_cost(T, q) {
+    var cost = 0;
+    var q_now = q;
+    var q_now_id = search_tree(q, T);
+    var debug = 0;
+    //console.log("T", T, "q", q);
+    //alert();
+    while (true) {
+        //console.log("q_now", q_now);
+        //console.log("q_goal_config", vec_norm(vec_sub(q_goal_config, q_now)));
+        //console.log("q_start_config", vec_norm(vec_sub(q_start_config, q_now)));
+        //alert("cost");
+        if ((vec_norm(vec_sub(q_goal_config, q_now)) < 0.001) || (vec_norm(vec_sub(q_start_config, q_now)) < 0.001)) {
+            return cost;
+        }
+
+        var q_parent = T.vertices[q_now_id].edges[0].vertex;
+        var q_parent_id = search_tree(q_parent, T);
+
+        cost += vec_norm(vec_sub(q_now, q_parent));
+        //console.log(q_now, q_now_id);
+        //alert("cost");
+        q_now = q_parent;
+        q_now_id = q_parent_id;
+        //console.log(debug);
+        debug += 1;
+    }
+
+    return cost;
 }
