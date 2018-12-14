@@ -81,10 +81,10 @@ function init() {
     dt = 0.05;  // default
  
     // initialize method of numerical integration of dynamics
-    //numerical_integrator = "euler";
+    numerical_integrator = "euler";
     //numerical_integrator = "verlet";
     //numerical_integrator = "velocity verlet";
-    numerical_integrator = "runge-kutta";
+    //numerical_integrator = "runge-kutta";
 
     // OPTIONAL servo controller additional features
     steady_state_error_reset = false; // integral term resets after desired met
@@ -191,11 +191,18 @@ function animate() {
         numerical_integrator = "none";
 
     if (numerical_integrator === "euler") {
-
+        
         // STENCIL: a correct Euler integrator is REQUIRED for assignment
-        pendulum.angle_dot += (-(gravity * Math.sin(pendulum.angle)) / pendulum.length + pendulum.control / (pendulum.mass * Math.pow(pendulum.length, 2))) * dt;
-        pendulum.angle += pendulum.angle_dot * dt;
         //console.log(pendulum.control);
+        //pendulum.angle += pendulum.angle_dot * dt;
+        //pendulum_angle_dotdot = -(gravity * Math.sin(pendulum.angle)) / pendulum.length + pendulum.control / (pendulum.mass * Math.pow(pendulum.length, 2));
+        //pendulum.angle_dot += pendulum_angle_dotdot * dt;
+        
+        pendulum.angle_dotdot = -(gravity * Math.sin(pendulum.angle)) / pendulum.length + pendulum.control / (pendulum.mass * Math.pow(pendulum.length, 2));
+        pendulum.angle += pendulum.angle_dot * dt;
+        pendulum.angle_dot += pendulum.angle_dotdot * dt;
+
+        //console.log(pendulum.angle_dot, pendulum.angle);
     }
     else if (numerical_integrator === "verlet") {
 
@@ -254,6 +261,8 @@ function animate() {
     }
 
     // set the angle of the pendulum
+    //console.log(pendulum.angle);
+    //alert();
     pendulum.geom.rotation.y = pendulum.angle;  // threejs cylinders have their axes along the y-axis
 
     // advance time
